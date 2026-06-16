@@ -3,52 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Steam Dashboard</title>
+    <title>Steam Pro Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #1b2838; color: white; padding: 20px; }
-        .game-card { border: 1px solid #316282; padding: 15px; margin: 10px 0; background: #16202d; border-radius: 5px; }
-        .price { color: #A3CF06; font-weight: bold; }
+        /* 1. Global Styles & Steam Color Palette */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #171a21; /* Steam deep dark background */
+            color: #c7d5e0;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 { color: #ffffff; text-align: center; }
+
+        /* 2. Control Panel (Search & Filters) */
+        .controls-container {
+            background-color: #1b2838;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        .search-bar {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border: none;
+            background-color: #316282;
+            color: white;
+            font-size: 16px;
+        }
+        .search-bar::placeholder { color: #8f98a0; }
+
+        .filter-row { margin-bottom: 10px; }
+        .filter-title { font-weight: bold; color: #66c0f4; margin-right: 15px; }
+        .filter-label { margin-right: 15px; cursor: pointer; }
+
+        /* 3. Game Grid Layout (3-4 columns responsive) */
+        .grid-container {
+            display: grid;
+            /* Auto-fill creates as many columns as fit, min width 280px */
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* 4. Game Card Styling */
+        .game-card {
+            background-color: #202d39;
+            border-radius: 6px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            border: 1px solid #66c0f4;
+        }
+        .game-image { width: 100%; height: auto; display: block; }
+        .game-info { padding: 15px; }
+        .game-title { margin: 0 0 10px 0; font-size: 18px; color: #ffffff; }
+        .price-free { color: #A3CF06; font-weight: bold; }
+        .price-paid { color: #66c0f4; font-weight: bold; }
+        .tag-badge {
+            display: inline-block;
+            background-color: #316282;
+            font-size: 12px;
+            padding: 3px 6px;
+            border-radius: 3px;
+            margin: 2px 2px 0 0;
+        }
+
+        /* 5. Pagination Styling */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            gap: 15px;
+        }
+        .btn {
+            background-color: #66c0f4;
+            color: #171a21;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn:disabled { background-color: #316282; cursor: not-allowed; }
+        #page-info { font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h1>🎮 Steam Hot Games Detector</h1>
-    <button onclick="loadGames()">Get Steam Specials / Featured Data</button>
+    <h1>🎮 Steam Pro Dashboard</h1>
+
+    <div class="controls-container">
+        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search games by name..." oninput="applyFilters()">
+        
+        <div class="filter-row">
+            <span class="filter-title">Price:</span>
+            <label class="filter-label"><input type="radio" name="price" value="all" checked onchange="applyFilters()"> All</label>
+            <label class="filter-label"><input type="radio" name="price" value="free" onchange="applyFilters()"> Free</label>
+            <label class="filter-label"><input type="radio" name="price" value="paid" onchange="applyFilters()"> Paid</label>
+            <label class="filter-label"><input type="radio" name="price" value="discount" onchange="applyFilters()"> On Sale</label>
+        </div>
+
+        <div class="filter-row">
+            <span class="filter-title">Players:</span>
+            <label class="filter-label"><input type="checkbox" value="Single-player" class="player-cb" onchange="applyFilters()"> Single-player</label>
+            <label class="filter-label"><input type="checkbox" value="Multiplayer" class="player-cb" onchange="applyFilters()"> Multiplayer</label>
+            <label class="filter-label"><input type="checkbox" value="Co-op" class="player-cb" onchange="applyFilters()"> Co-op</label>
+        </div>
+
+        <div class="filter-row">
+            <span class="filter-title">Genre:</span>
+            <label class="filter-label"><input type="checkbox" value="FPS" class="genre-cb" onchange="applyFilters()"> FPS</label>
+            <label class="filter-label"><input type="checkbox" value="Horror" class="genre-cb" onchange="applyFilters()"> Horror</label>
+            <label class="filter-label"><input type="checkbox" value="Action" class="genre-cb" onchange="applyFilters()"> Action</label>
+            <label class="filter-label"><input type="checkbox" value="Romance" class="genre-cb" onchange="applyFilters()"> Romance</label>
+        </div>
+    </div>
     
-    <div id="games-container"></div>
+    <div id="games-container" class="grid-container">
+        <h3 style="text-align: center; width: 100%; grid-column: 1 / -1;">Loading top games from Steam...</h3>
+    </div>
 
-            <script>
-                async function loadGames() {
-                    const container = document.getElementById('games-container');
-                    container.innerHTML = "Requesting data from Steam...";
+    <div class="pagination">
+        <button id="prevBtn" class="btn" onclick="changePage(-1)">Previous</button>
+        <span id="page-info">Page 1 / 1</span>
+        <button id="nextBtn" class="btn" onclick="changePage(1)">Next</button>
+    </div>
 
-                    try {
-                        // Fetch data from our own backend API
-                        const response = await fetch('/api/steam-games');
-                        const data = await response.json();
+    <script>
+        // Global State Variables
+        let allGames = [];
+        let filteredGames = [];
+        let currentPage = 1;
+        const itemsPerPage = 8; // 8 games per page (2 rows of 4)
 
-                        // Get the array of games under the 'specials' category
-                        const specials = data.specials.items;
-                        
-                        container.innerHTML = ""; // Clear the loading text
+        // Mock data generators for missing Steam API tags
+        const playerTypes = ["Single-player", "Multiplayer", "Co-op"];
+        const genres = ["FPS", "Horror", "Action", "Romance"];
 
-                        // Loop through the games and inject them into the webpage
-                        specials.forEach(game => {
-                            const card = document.createElement('div');
-                            card.className = 'game-card';
-                            card.innerHTML = `
-                                <h3>${game.name}</h3>
-                                <img src="${game.large_capsule_image}" alt="${game.name}" style="width:200px;">
-                                <p class="price">Discounted Price: $${(game.final_price / 100).toFixed(2)}</p>
-                            `;
-                            container.appendChild(card);
-                        });
+        // Initialization function
+        async function fetchGames() {
+            try {
+                const response = await fetch('/api/steam-games');
+                const data = await response.json();
+                
+                // We combine 'top_sellers' and 'specials' to get more data for testing
+                let rawGames = [...data.top_sellers.items, ...data.specials.items];
+                
+                // Remove duplicates by ID
+                const uniqueGamesMap = new Map();
+                rawGames.forEach(game => uniqueGamesMap.set(game.id, game));
+                allGames = Array.from(uniqueGamesMap.values());
 
-                    } catch (error) {
-                        container.innerHTML = "Failed to load data. Please check the backend console logs!";
-                        console.error(error);
-                    }
-                }
-            </script>
+                // Inject mock tags since the basic API doesn't provide them
+                allGames = allGames.map(game => ({
+                    ...game,
+                    is_free: game.final_price === 0,
+                    players: [playerTypes[Math.floor(Math.random() * playerTypes.length)]], // Randomly assign 1 player type
+                    tags: [genres[Math.floor(Math.random() * genres.length)]] // Randomly assign 1 genre
+                }));
+
+                // Initial render
+                applyFilters();
+            } catch (error) {
+                document.getElementById('games-container').innerHTML = "Failed to load data.";
+                console.error(error);
+            }
+        }
+
+        // Core filtering logic
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const priceFilter = document.querySelector('input[name="price"]:checked').value;
+            
+            // Get checked checkboxes for players and genres
+            const checkedPlayers = Array.from(document.querySelectorAll('.player-cb:checked')).map(cb => cb.value);
+            const checkedGenres = Array.from(document.querySelectorAll('.genre-cb:checked')).map(cb => cb.value);
+
+            filteredGames = allGames.filter(game => {
+                // 1. Check Search Box
+                const matchesSearch = game.name.toLowerCase().includes(searchTerm);
+                
+                // 2. Check Price Radio Buttons
+                let matchesPrice = true;
+                if (priceFilter === 'free') matchesPrice = game.is_free;
+                if (priceFilter === 'paid') matchesPrice = !game.is_free;
+                if (priceFilter === 'discount') matchesPrice = game.discount_percent > 0;
+
+                // 3. Check Player Types (if any selected)
+                let matchesPlayer = checkedPlayers.length === 0 || checkedPlayers.some(p => game.players.includes(p));
+
+                // 4. Check Genres (if any selected)
+                let matchesGenre = checkedGenres.length === 0 || checkedGenres.some(g => game.tags.includes(g));
+
+                return matchesSearch && matchesPrice && matchesPlayer && matchesGenre;
+            });
+
+            // Reset to page 1 whenever filters change
+            currentPage = 1; 
+            renderGrid();
+        }
+
+        // Render the UI based on current page
+        function renderGrid() {
+            const container = document.getElementById('games-container');
+            container.innerHTML = ""; // Clear existing
+
+            if (filteredGames.length === 0) {
+                container.innerHTML = "<h3 style='grid-column: 1 / -1; text-align: center;'>No games found matching your criteria.</h3>";
+                updatePagination();
+                return;
+            }
+
+            // Calculate Start and End Index for Pagination
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const gamesToDisplay = filteredGames.slice(startIndex, endIndex);
+
+            // Generate HTML for each card
+            gamesToDisplay.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                // Click event to show game details (Alert for now)
+                card.onclick = () => alert(`Opening details for: ${game.name}\nOriginal Price: $${(game.original_price/100).toFixed(2)}`);
+
+                const priceClass = game.is_free ? 'price-free' : 'price-paid';
+                const priceText = game.is_free ? 'Free to Play' : `$${(game.final_price / 100).toFixed(2)}`;
+                const discountTag = game.discount_percent > 0 ? `<span class="tag-badge" style="background:#4c6b22;">-${game.discount_percent}%</span>` : '';
+
+                // Generate tags HTML
+                const tagsHTML = [...game.players, ...game.tags].map(tag => `<span class="tag-badge">${tag}</span>`).join('');
+
+                card.innerHTML = `
+                    <img src="${game.large_capsule_image}" alt="${game.name}" class="game-image">
+                    <div class="game-info">
+                        <h3 class="game-title">${game.name}</h3>
+                        ${tagsHTML}
+                        <p class="price ${priceClass}" style="margin-top: 15px;">
+                            ${discountTag} ${priceText}
+                        </p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            updatePagination();
+        }
+
+        // Handle page switching
+        function changePage(direction) {
+            currentPage += direction;
+            renderGrid();
+        }
+
+        // Update Button States and Page Text
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredGames.length / itemsPerPage) || 1;
+            document.getElementById('page-info').innerText = `Page ${currentPage} / ${totalPages}`;
+            
+            document.getElementById('prevBtn').disabled = (currentPage === 1);
+            document.getElementById('nextBtn').disabled = (currentPage === totalPages);
+        }
+
+        // Auto-fetch data when the page loads
+        window.onload = fetchGames;
+    </script>
 </body>
 </html>

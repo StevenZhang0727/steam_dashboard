@@ -5,202 +5,312 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Steam Pro Dashboard</title>
     <style>
-        /* 1. Global Styles & Steam Color Palette */
+        /* CSS 变量：用于一键切换明暗主题 */
+        :root {
+            --bg-color: #171a21;
+            --panel-bg: #1b2838;
+            --card-bg: #202d39;
+            --text-color: #c7d5e0;
+            --text-title: #ffffff;
+            --primary-color: #66c0f4;
+            --border-color: #316282;
+            --price-free: #A3CF06;
+        }
+
+        /* 亮色模式变量 */
+        [data-theme="light"] {
+            --bg-color: #f0f2f5;
+            --panel-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --text-title: #1a1a1a;
+            --primary-color: #1b2838;
+            --border-color: #d1d9e0;
+            --price-free: #4c6b22;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #171a21; /* Steam deep dark background */
-            color: #c7d5e0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 20px;
-        }
-        h1 { color: #ffffff; text-align: center; }
-
-        /* 2. Control Panel (Search & Filters) */
-        .controls-container {
-            background-color: #1b2838;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: background-color 0.3s, color 0.3s;
         }
         
-        .search-bar {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-            border: none;
-            background-color: #316282;
-            color: white;
-            font-size: 16px;
-        }
-        .search-bar::placeholder { color: #8f98a0; }
+        .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        h1 { color: var(--text-title); margin: 0; }
 
-        .filter-row { margin-bottom: 10px; }
-        .filter-title { font-weight: bold; color: #66c0f4; margin-right: 15px; }
-        .filter-label { margin-right: 15px; cursor: pointer; }
-
-        /* 3. Game Grid Layout (3-4 columns responsive) */
-        .grid-container {
-            display: grid;
-            /* Auto-fill creates as many columns as fit, min width 280px */
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        /* 4. Game Card Styling */
-        .game-card {
-            background-color: #202d39;
-            border-radius: 6px;
-            overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-            border: 1px solid #66c0f4;
-        }
-        .game-image { width: 100%; height: auto; display: block; }
-        .game-info { padding: 15px; }
-        .game-title { margin: 0 0 10px 0; font-size: 18px; color: #ffffff; }
-        .price-free { color: #A3CF06; font-weight: bold; }
-        .price-paid { color: #66c0f4; font-weight: bold; }
-        .tag-badge {
-            display: inline-block;
-            background-color: #316282;
-            font-size: 12px;
-            padding: 3px 6px;
-            border-radius: 3px;
-            margin: 2px 2px 0 0;
-        }
-
-        /* 5. Pagination Styling */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 30px;
-            gap: 15px;
-        }
+        /* 统一按钮样式 */
         .btn {
-            background-color: #66c0f4;
-            color: #171a21;
+            background-color: var(--primary-color);
+            color: #fff;
             border: none;
             padding: 8px 16px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
+            transition: opacity 0.2s;
         }
-        .btn:disabled { background-color: #316282; cursor: not-allowed; }
-        #page-info { font-weight: bold; }
+        .btn:hover { opacity: 0.8; }
+        .btn-icon { background: none; font-size: 24px; padding: 5px; color: var(--text-title); }
+        .btn-icon:hover { color: var(--primary-color); }
 
-        /* 6. Modal (Popup) Styling */
+        .controls-container {
+            background-color: var(--panel-bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .search-bar {
+            width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px;
+            border: 1px solid var(--border-color); background-color: var(--card-bg);
+            color: var(--text-color); font-size: 16px; box-sizing: border-box;
+        }
+
+        .filter-row { margin-bottom: 10px; }
+        .filter-title { font-weight: bold; color: var(--primary-color); margin-right: 15px; }
+        .filter-label { margin-right: 15px; cursor: pointer; }
+
+        .grid-container {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
+        }
+
+        .game-card {
+            background-color: var(--card-bg); border-radius: 6px; overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+            border: 1px solid var(--border-color);
+        }
+        .game-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.2); border-color: var(--primary-color); }
+        .game-image { width: 100%; height: auto; display: block; object-fit: cover; }
+        .game-info { padding: 15px; }
+        .game-title { margin: 0 0 10px 0; font-size: 18px; color: var(--text-title); }
+        .price-free { color: var(--price-free); font-weight: bold; }
+        .price-paid { color: var(--primary-color); font-weight: bold; }
+        
+        .tag-badge {
+            display: inline-block; background-color: var(--border-color); color: var(--text-title);
+            font-size: 12px; padding: 3px 6px; border-radius: 3px; margin: 2px 2px 0 0;
+        }
+
+        .pagination { display: flex; justify-content: center; align-items: center; margin-top: 30px; gap: 15px; }
+
+        /* 模态框通用样式 (用于游戏详情和设置面板) */
         .modal {
-            display: none; /* 默认隐藏 */
-            position: fixed; /* 固定在屏幕上，不随滚动条滚动 */
-            z-index: 1000; /* 保证它在最顶层 */
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.8); /* 半透明纯黑背景 */
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(5px); /* 毛玻璃特效 */
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); align-items: center; justify-content: center;
+            backdrop-filter: blur(5px);
         }
         .modal-content {
-            background-color: #1b2838;
-            padding: 25px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 600px;
-            position: relative;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-            border: 1px solid #316282;
-            color: white;
-            animation: fadeIn 0.3s ease; /* 弹出的动画 */
+            background-color: var(--panel-bg); padding: 25px; border-radius: 8px; width: 90%; max-width: 600px;
+            position: relative; border: 1px solid var(--border-color); color: var(--text-color);
+            animation: fadeIn 0.2s ease;
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         
-        .close-btn {
-            position: absolute;
-            top: 10px; right: 15px;
-            color: #8f98a0;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .close-btn:hover { color: #ffffff; }
-        .modal-header-img { width: 100%; border-radius: 4px; margin-bottom: 15px; }
+        .close-btn { position: absolute; top: 10px; right: 15px; color: var(--text-color); font-size: 28px; cursor: pointer; }
+        
+        /* 设置面板专属样式 */
+        .settings-group { margin-bottom: 20px; }
+        .settings-group label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary-color); }
+        .settings-group select { width: 100%; padding: 10px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <h1>🎮 Steam Pro Dashboard</h1>
+    <div class="header-container">
+        <h1 id="ui-title">🎮 Steam Pro Dashboard</h1>
+        <!-- ⚙️ 设置按钮 -->
+        <button class="btn btn-icon" onclick="openSettings()">⚙️</button>
+    </div>
 
     <div class="controls-container">
-        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search games by name..." oninput="applyFilters()">
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search games by name..." oninput="applyFilters()">
         
         <div class="filter-row">
-            <span class="filter-title">Price:</span>
-            <label class="filter-label"><input type="radio" name="price" value="all" checked onchange="applyFilters()"> All</label>
-            <label class="filter-label"><input type="radio" name="price" value="free" onchange="applyFilters()"> Free</label>
-            <label class="filter-label"><input type="radio" name="price" value="paid" onchange="applyFilters()"> Paid</label>
-            <label class="filter-label"><input type="radio" name="price" value="discount" onchange="applyFilters()"> On Sale</label>
+            <span class="filter-title" id="ui-filter-price">Price:</span>
+            <label class="filter-label"><input type="radio" name="price" value="all" checked onchange="applyFilters()"> <span id="ui-price-all">All</span></label>
+            <label class="filter-label"><input type="radio" name="price" value="free" onchange="applyFilters()"> <span id="ui-price-free">Free</span></label>
+            <label class="filter-label"><input type="radio" name="price" value="paid" onchange="applyFilters()"> <span id="ui-price-paid">Paid</span></label>
         </div>
 
         <div class="filter-row">
-            <span class="filter-title">Players:</span>
-            <label class="filter-label"><input type="checkbox" value="Single-player" class="player-cb" onchange="applyFilters()"> Single-player</label>
-            <label class="filter-label"><input type="checkbox" value="Multiplayer" class="player-cb" onchange="applyFilters()"> Multiplayer</label>
-            <label class="filter-label"><input type="checkbox" value="Co-op" class="player-cb" onchange="applyFilters()"> Co-op</label>
+            <span class="filter-title" id="ui-filter-players">Players:</span>
+            <label class="filter-label"><input type="checkbox" value="Single-player" class="player-cb" onchange="applyFilters()"> <span id="ui-player-single">Single-player</span></label>
+            <label class="filter-label"><input type="checkbox" value="Multiplayer" class="player-cb" onchange="applyFilters()"> <span id="ui-player-multi">Multiplayer</span></label>
         </div>
 
         <div class="filter-row">
-            <span class="filter-title">Genre:</span>
+            <span class="filter-title" id="ui-filter-genre">Genre:</span>
             <label class="filter-label"><input type="checkbox" value="FPS" class="genre-cb" onchange="applyFilters()"> FPS</label>
             <label class="filter-label"><input type="checkbox" value="Horror" class="genre-cb" onchange="applyFilters()"> Horror</label>
             <label class="filter-label"><input type="checkbox" value="Action" class="genre-cb" onchange="applyFilters()"> Action</label>
-            <label class="filter-label"><input type="checkbox" value="Romance" class="genre-cb" onchange="applyFilters()"> Romance</label>
         </div>
     </div>
     
-    <div id="games-container" class="grid-container">
-        <h3 style="text-align: center; width: 100%; grid-column: 1 / -1;">Loading top games from Steam...</h3>
-    </div>
+    <div id="games-container" class="grid-container"></div>
 
     <div class="pagination">
-        <button id="prevBtn" class="btn" onclick="changePage(-1)">Previous</button>
+        <button id="prevBtn" class="btn" onclick="changePage(-1)">Prev</button>
         <span id="page-info">Page 1 / 1</span>
         <button id="nextBtn" class="btn" onclick="changePage(1)">Next</button>
     </div>
 
-    <div id="gameModal" class="modal" onclick="closeModal(event)">
+    <!-- 游戏详情弹窗 -->
+    <div id="gameModal" class="modal" onclick="closeModal(event, 'gameModal')">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <div id="modal-details">
-                </div>
+            <span class="close-btn" onclick="closeModal(event, 'gameModal', true)">&times;</span>
+            <div id="modal-details"></div>
+        </div>
+    </div>
+
+    <!-- ⚙️ 高级设置弹窗 -->
+    <div id="settingsModal" class="modal" onclick="closeModal(event, 'settingsModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close-btn" onclick="closeModal(event, 'settingsModal', true)">&times;</span>
+            <h2 id="ui-settings-title" style="margin-top:0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Preferences</h2>
+            
+            <div class="settings-group">
+                <label id="ui-set-lang">Language (语言):</label>
+                <select id="setting-lang">
+                    <option value="en_US">English</option>
+                    <option value="zh_CN">简体中文</option>
+                    <option value="ja_JP">日本語</option>
+                </select>
+            </div>
+
+            <div class="settings-group">
+                <label id="ui-set-region">Store Region & Currency (区域与货币):</label>
+                <select id="setting-region">
+                    <option value="US">🇺🇸 United States (USD)</option>
+                    <option value="AU">🇦🇺 Australia (AUD)</option>
+                    <option value="CN">🇨🇳 China (CNY)</option>
+                    <option value="JP">🇯🇵 Japan (JPY)</option>
+                </select>
+            </div>
+
+            <div class="settings-group">
+                <label id="ui-set-theme">Theme (主题):</label>
+                <select id="setting-theme">
+                    <option value="dark">🌙 Dark Mode</option>
+                    <option value="light">☀️ Light Mode</option>
+                </select>
+            </div>
+
+            <div class="settings-group">
+                <label id="ui-set-data">Data Saver (数据节省):</label>
+                <select id="setting-data">
+                    <option value="false">Off (High-Res Images)</option>
+                    <option value="true">On (Low-Res Images)</option>
+                </select>
+            </div>
+
+            <button class="btn" id="ui-btn-save" style="width: 100%; margin-top: 15px;" onclick="saveSettings()">Save & Reload</button>
         </div>
     </div>
 
     <script>
-        // Global State Variables
+        // === 1. 国际化翻译字典 (i18n) ===
+        const i18n = {
+            en_US: {
+                title: "🎮 Steam Pro Dashboard", searchPlace: "Search games by name...",
+                filterPrice: "Price:", priceAll: "All", priceFree: "Free", pricePaid: "Paid",
+                filterPlayers: "Players:", pSingle: "Single-player", pMulti: "Multiplayer",
+                filterGenre: "Genre:", btnPrev: "Prev", btnNext: "Next",
+                setTitle: "Preferences", setLang: "Language", setRegion: "Region & Currency",
+                setTheme: "Theme", setData: "Data Saver (Low-Res Images)", btnSave: "Save & Reload",
+                loading: "Loading top games from Steam...", fetchDeep: "Fetching deeply hidden secrets...",
+                about: "About This Game:", freeToPlay: "Free to Play", steamLang: "english"
+            },
+            zh_CN: {
+                title: "🎮 Steam 高级仪表盘", searchPlace: "输入游戏名称搜索...",
+                filterPrice: "价格:", priceAll: "全部", priceFree: "免费", pricePaid: "付费",
+                filterPlayers: "玩家:", pSingle: "单人游戏", pMulti: "多人游戏",
+                filterGenre: "类型:", btnPrev: "上一页", btnNext: "下一页",
+                setTitle: "偏好设置", setLang: "界面语言", setRegion: "商店区域与货币",
+                setTheme: "外观主题", setData: "省流量模式 (加载低画质图片)", btnSave: "保存并重新加载数据",
+                loading: "正在从 Steam 获取热门游戏...", fetchDeep: "正在挖掘游戏的深层秘密...",
+                about: "关于此游戏:", freeToPlay: "免费开玩", steamLang: "schinese"
+            },
+            ja_JP: {
+                title: "🎮 Steam プロダッシュボード", searchPlace: "ゲーム名で検索...",
+                filterPrice: "価格:", priceAll: "すべて", priceFree: "無料", pricePaid: "有料",
+                filterPlayers: "プレイヤー:", pSingle: "シングルプレイヤー", pMulti: "マルチプレイヤー",
+                filterGenre: "ジャンル:", btnPrev: "前へ", btnNext: "次へ",
+                setTitle: "設定", setLang: "言語", setRegion: "地域と通貨",
+                setTheme: "テーマ", setData: "データセーバー (低解像度画像)", btnSave: "保存してリロード",
+                loading: "Steamから人気ゲームを読み込み中...", fetchDeep: "ゲームの詳細情報を取得中...",
+                about: "このゲームについて:", freeToPlay: "プレイ無料", steamLang: "japanese"
+            }
+        };
+
+        // === 2. 状态与配置 ===
         let allGames = [];
         let filteredGames = [];
         let currentPage = 1;
-        const itemsPerPage = 8; // 8 games per page (2 rows of 4)
+        const itemsPerPage = 8;
+        
+        // 默认设置 (如果用户没存过)
+        let config = { lang: 'en_US', region: 'US', theme: 'dark', dataSaver: 'false' };
 
-        // Mock data generators for missing Steam API tags
-        const playerTypes = ["Single-player", "Multiplayer", "Co-op"];
-        const genres = ["FPS", "Horror", "Action", "Romance"];
+        // 模拟数据
+        const playerTypes = ["Single-player", "Multiplayer"];
+        const genres = ["FPS", "Horror", "Action"];
 
-        // Initialization function
+        // === 3. 初始化 (加载设置与多语言) ===
+        function initApp() {
+            // 从浏览器的 LocalStorage 中读取用户之前保存的设置
+            const savedConfig = localStorage.getItem('steamDashboardConfig');
+            if (savedConfig) config = JSON.parse(savedConfig);
+
+            applyThemeAndLang();
+            fetchGames();
+        }
+
+        // 应用主题并替换全站文字
+        function applyThemeAndLang() {
+            // 1. 设置主题
+            document.documentElement.setAttribute('data-theme', config.theme);
+            
+            // 2. 替换文字字典
+            const t = i18n[config.lang];
+            document.getElementById('ui-title').innerText = t.title;
+            document.getElementById('searchInput').placeholder = t.searchPlace;
+            document.getElementById('ui-filter-price').innerText = t.filterPrice;
+            document.getElementById('ui-price-all').innerText = t.priceAll;
+            document.getElementById('ui-price-free').innerText = t.priceFree;
+            document.getElementById('ui-price-paid').innerText = t.pricePaid;
+            document.getElementById('ui-filter-players').innerText = t.filterPlayers;
+            document.getElementById('ui-player-single').innerText = t.pSingle;
+            document.getElementById('ui-player-multi').innerText = t.pMulti;
+            document.getElementById('ui-filter-genre').innerText = t.filterGenre;
+            document.getElementById('prevBtn').innerText = t.btnPrev;
+            document.getElementById('nextBtn').innerText = t.btnNext;
+            
+            // 设置弹窗里的文字
+            document.getElementById('ui-settings-title').innerText = t.setTitle;
+            document.getElementById('ui-set-lang').innerText = t.setLang;
+            document.getElementById('ui-set-region').innerText = t.setRegion;
+            document.getElementById('ui-set-theme').innerText = t.setTheme;
+            document.getElementById('ui-set-data').innerText = t.setData;
+            document.getElementById('ui-btn-save').innerText = t.btnSave;
+        }
+
+        // === 4. 核心逻辑 ===
         async function fetchGames() {
+            const container = document.getElementById('games-container');
+            container.innerHTML = `<h3 style="text-align:center; grid-column:1/-1;">${i18n[config.lang].loading}</h3>`;
+            
             try {
-                const response = await fetch('/api/steam-games');
+                // ！！！亮点：前端带着用户的区域和语言配置去请求后端！！！
+                const steamLang = i18n[config.lang].steamLang;
+                const url = `/api/steam-games?cc=${config.region}&lang=${steamLang}`;
+                
+                const response = await fetch(url);
                 const rawGames = await response.json(); 
                 
-                // Inject mock tags (since the basic API doesn't provide them)
                 allGames = rawGames.map(game => ({
                     ...game,
                     is_free: game.final_price === 0,
@@ -208,171 +318,141 @@
                     tags: [genres[Math.floor(Math.random() * genres.length)]] 
                 }));
 
-                // Initial render
                 applyFilters();
             } catch (error) {
-                document.getElementById('games-container').innerHTML = "Failed to load data.";
+                container.innerHTML = "Failed to load data. API Error.";
                 console.error(error);
             }
         }
 
-        // Core filtering logic
+        // (过滤和分页逻辑不变)
         function applyFilters() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const priceFilter = document.querySelector('input[name="price"]:checked').value;
-            
-            // Get checked checkboxes for players and genres
             const checkedPlayers = Array.from(document.querySelectorAll('.player-cb:checked')).map(cb => cb.value);
             const checkedGenres = Array.from(document.querySelectorAll('.genre-cb:checked')).map(cb => cb.value);
 
             filteredGames = allGames.filter(game => {
-                // 1. Check Search Box
                 const matchesSearch = game.name.toLowerCase().includes(searchTerm);
-                
-                // 2. Check Price Radio Buttons
                 let matchesPrice = true;
                 if (priceFilter === 'free') matchesPrice = game.is_free;
                 if (priceFilter === 'paid') matchesPrice = !game.is_free;
-                if (priceFilter === 'discount') matchesPrice = game.discount_percent > 0;
-
-                // 3. Check Player Types (if any selected)
                 let matchesPlayer = checkedPlayers.length === 0 || checkedPlayers.some(p => game.players.includes(p));
-
-                // 4. Check Genres (if any selected)
                 let matchesGenre = checkedGenres.length === 0 || checkedGenres.some(g => game.tags.includes(g));
-
                 return matchesSearch && matchesPrice && matchesPlayer && matchesGenre;
             });
-
-            // Reset to page 1 whenever filters change
             currentPage = 1; 
             renderGrid();
         }
 
-        // Render the UI based on current page
         function renderGrid() {
             const container = document.getElementById('games-container');
-            container.innerHTML = ""; // Clear existing
+            container.innerHTML = ""; 
+            if (filteredGames.length === 0) return;
 
-            if (filteredGames.length === 0) {
-                container.innerHTML = "<h3 style='grid-column: 1 / -1; text-align: center;'>No games found matching your criteria.</h3>";
-                updatePagination();
-                return;
-            }
-
-            // Calculate Start and End Index for Pagination
             const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const gamesToDisplay = filteredGames.slice(startIndex, endIndex);
+            const gamesToDisplay = filteredGames.slice(startIndex, startIndex + itemsPerPage);
 
-            // Generate HTML for each card
             gamesToDisplay.forEach(game => {
                 const card = document.createElement('div');
                 card.className = 'game-card';
-                // Click event to open the awesome modal
-                card.onclick = () => openModal(game);
+                card.onclick = () => openGameModal(game);
 
                 const priceClass = game.is_free ? 'price-free' : 'price-paid';
-                const priceText = game.is_free ? 'Free to Play' : `$${(game.final_price / 100).toFixed(2)}`;
+                const priceText = game.is_free ? i18n[config.lang].freeToPlay : `${game.currency === 'CNY' ? '¥' : (game.currency==='JPY'?'¥':'$')}${(game.final_price / 100).toFixed(2)}`;
                 const discountTag = game.discount_percent > 0 ? `<span class="tag-badge" style="background:#4c6b22;">-${game.discount_percent}%</span>` : '';
-
-                // Generate tags HTML
                 const tagsHTML = [...game.players, ...game.tags].map(tag => `<span class="tag-badge">${tag}</span>`).join('');
+                
+                // 省流量模式判断：如果开启，加载小的 capsule 图片，否则加载高清大图
+                const imgSource = config.dataSaver === 'true' ? game.small_capsule_image : game.large_capsule_image;
 
                 card.innerHTML = `
-                    <img src="${game.large_capsule_image}" alt="${game.name}" class="game-image">
+                    <img src="${imgSource}" alt="${game.name}" class="game-image">
                     <div class="game-info">
                         <h3 class="game-title">${game.name}</h3>
                         ${tagsHTML}
-                        <p class="price ${priceClass}" style="margin-top: 15px;">
-                            ${discountTag} ${priceText}
-                        </p>
+                        <p class="price ${priceClass}" style="margin-top: 15px;">${discountTag} ${priceText}</p>
                     </div>
                 `;
                 container.appendChild(card);
             });
-
             updatePagination();
         }
 
-        // Handle page switching
-        function changePage(direction) {
-            currentPage += direction;
-            renderGrid();
-        }
-
-        // Update Button States and Page Text
+        function changePage(direction) { currentPage += direction; renderGrid(); }
         function updatePagination() {
             const totalPages = Math.ceil(filteredGames.length / itemsPerPage) || 1;
-            document.getElementById('page-info').innerText = `Page ${currentPage} / ${totalPages}`;
-            
+            document.getElementById('page-info').innerText = `${currentPage} / ${totalPages}`;
             document.getElementById('prevBtn').disabled = (currentPage === 1);
             document.getElementById('nextBtn').disabled = (currentPage === totalPages);
         }
 
-        // Open Modal and fetch Deep Data!
-        async function openModal(game) {
+        // === 5. 游戏详情弹窗 ===
+        async function openGameModal(game) {
             const modal = document.getElementById('gameModal');
             const details = document.getElementById('modal-details');
+            const t = i18n[config.lang];
             
-            // 1. 立刻显示弹窗，并给用户一个酷炫的加载提示
             modal.style.display = 'flex';
-            details.innerHTML = `
-                <h2 style="text-align: center; margin-top: 50px; color: #66c0f4;">
-                    Fetching deeply hidden secrets from Steam... 🕵️‍♂️<br>
-                    <span style="font-size: 14px; color: #8f98a0;">(Loading appdetails for ${game.name})</span>
-                </h2>
-            `;
+            details.innerHTML = `<h3 style="text-align: center;">${t.fetchDeep}</h3>`;
 
             try {
-                // 2. 拿着游戏 ID 去请求我们刚才写好的后端新接口
-                const response = await fetch(`/api/game-detail?id=${game.id}`);
+                const steamLang = t.steamLang;
+                const response = await fetch(`/api/game-detail?id=${game.id}&cc=${config.region}&lang=${steamLang}`);
                 const deepData = await response.json();
 
-                if (deepData.error) throw new Error(deepData.error);
-
-                const priceText = game.is_free ? 'Free to Play' : `$${(game.final_price / 100).toFixed(2)}`;
+                const priceText = game.is_free ? t.freeToPlay : `${game.currency === 'CNY' ? '¥' : '$'}${(game.final_price / 100).toFixed(2)}`;
+                const pcReq = deepData.pc_requirements?.minimum || "No PC requirements listed.";
                 
-                // Steam 接口返回的电脑配置要求是一段 HTML 代码，我们可以直接拿来用
-                const pcReq = deepData.pc_requirements?.minimum || "No specific PC requirements listed.";
-
-                // 3. 数据拿到手了，重新把弹窗的 HTML 填满
                 details.innerHTML = `
-                    <img src="${deepData.header_image || game.large_capsule_image}" class="modal-header-img" alt="${deepData.name}">
+                    <img src="${deepData.header_image || game.large_capsule_image}" class="modal-header-img">
                     <h2 style="margin-top:0;">${deepData.name}</h2>
-                    <p><strong>Price:</strong> <span style="color:#A3CF06; font-size:18px;">${priceText}</span></p>
-                    
-                    <div style="margin: 15px 0; max-height: 100px; overflow-y: auto; background: #16202d; padding: 10px; border-radius: 4px; font-size: 14px; line-height: 1.5;">
-                        <strong>About This Game:</strong><br>
-                        ${deepData.short_description}
+                    <p><span style="color:var(--price-free); font-size:18px; font-weight:bold;">${priceText}</span></p>
+                    <div style="margin: 15px 0; max-height: 100px; overflow-y: auto; background: var(--card-bg); padding: 10px; border-radius: 4px; font-size: 14px;">
+                        <strong>${t.about}</strong><br>${deepData.short_description}
                     </div>
-
-                    <div style="margin: 15px 0; max-height: 120px; overflow-y: auto; background: #16202d; padding: 10px; border-radius: 4px; font-size: 12px; color: #8f98a0;">
+                    <div style="margin: 15px 0; max-height: 120px; overflow-y: auto; background: var(--card-bg); padding: 10px; border-radius: 4px; font-size: 12px;">
                         ${pcReq}
                     </div>
-
-                    <a href="https://store.steampowered.com/app/${game.id}" target="_blank" class="btn" style="text-decoration: none; display: inline-block; margin-top: 5px;">View on Steam Store</a>
                 `;
-
             } catch (error) {
-                // 4. 万一某个游戏在 Steam 里查不到数据，优雅地报错
-                details.innerHTML = `
-                    <h3 style="color: #ff4c4c; text-align: center;">Failed to load deep details.</h3>
-                    <p style="text-align: center;">${error.message}</p>
-                `;
+                details.innerHTML = `<h3 style="color: #ff4c4c; text-align: center;">Failed to load details.</h3>`;
             }
         }
 
-        // Close Modal
-        function closeModal(event) {
-            // Close if background is clicked OR the X button is clicked
-            if (!event || event.target.id === 'gameModal' || event.target.className === 'close-btn') {
-                document.getElementById('gameModal').style.display = 'none';
+        // === 6. 设置面板控制 ===
+        function openSettings() {
+            // 打开弹窗前，把当前的 config 填到表单里
+            document.getElementById('setting-lang').value = config.lang;
+            document.getElementById('setting-region').value = config.region;
+            document.getElementById('setting-theme').value = config.theme;
+            document.getElementById('setting-data').value = config.dataSaver;
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function saveSettings() {
+            // 获取用户的选择
+            config.lang = document.getElementById('setting-lang').value;
+            config.region = document.getElementById('setting-region').value;
+            config.theme = document.getElementById('setting-theme').value;
+            config.dataSaver = document.getElementById('setting-data').value;
+            
+            // ！！！存入浏览器本地存储！！！
+            localStorage.setItem('steamDashboardConfig', JSON.stringify(config));
+            
+            // 关闭弹窗并重新渲染整个网页
+            document.getElementById('settingsModal').style.display = 'none';
+            applyThemeAndLang(); // 立即变色并改文字
+            fetchGames(); // 重新向 Steam 要对应国家的货币数据
+        }
+
+        function closeModal(event, modalId, force = false) {
+            if (force || event.target.id === modalId) {
+                document.getElementById(modalId).style.display = 'none';
             }
         }
-        
-        // Auto-fetch data when the page loads
-        window.onload = fetchGames;
+
+        window.onload = initApp;
     </script>
 </body>
 </html>

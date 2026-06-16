@@ -310,26 +310,57 @@
             document.getElementById('nextBtn').disabled = (currentPage === totalPages);
         }
 
-        // Open Modal and inject data
-        function openModal(game) {
+        // Open Modal and fetch Deep Data!
+        async function openModal(game) {
             const modal = document.getElementById('gameModal');
             const details = document.getElementById('modal-details');
             
-            const priceText = game.is_free ? 'Free to Play' : `$${(game.final_price / 100).toFixed(2)}`;
-            const tagsHTML = [...game.players, ...game.tags].map(tag => `<span class="tag-badge">${tag}</span>`).join('');
-
-            // Dynamically build the inner HTML for the modal
-            details.innerHTML = `
-                <img src="${game.header_image || game.large_capsule_image}" class="modal-header-img" alt="${game.name}">
-                <h2 style="margin-top:0;">${game.name}</h2>
-                <div style="margin-bottom: 20px;">${tagsHTML}</div>
-                <p><strong>Price:</strong> <span style="color:#A3CF06; font-size:18px;">${priceText}</span></p>
-                <p><strong>Discount:</strong> ${game.discount_percent > 0 ? game.discount_percent + '% OFF' : 'None'}</p>
-                <a href="https://store.steampowered.com/app/${game.id}" target="_blank" class="btn" style="text-decoration: none; display: inline-block; margin-top: 15px;">View on Steam Store</a>
-            `;
-            
-            // Show the modal by changing display from 'none' to 'flex'
+            // 1. 立刻显示弹窗，并给用户一个酷炫的加载提示
             modal.style.display = 'flex';
+            details.innerHTML = `
+                <h2 style="text-align: center; margin-top: 50px; color: #66c0f4;">
+                    Fetching deeply hidden secrets from Steam... 🕵️‍♂️<br>
+                    <span style="font-size: 14px; color: #8f98a0;">(Loading appdetails for ${game.name})</span>
+                </h2>
+            `;
+
+            try {
+                // 2. 拿着游戏 ID 去请求我们刚才写好的后端新接口
+                const response = await fetch(`/api/game-detail?id=${game.id}`);
+                const deepData = await response.json();
+
+                if (deepData.error) throw new Error(deepData.error);
+
+                const priceText = game.is_free ? 'Free to Play' : `$${(game.final_price / 100).toFixed(2)}`;
+                
+                // Steam 接口返回的电脑配置要求是一段 HTML 代码，我们可以直接拿来用
+                const pcReq = deepData.pc_requirements?.minimum || "No specific PC requirements listed.";
+
+                // 3. 数据拿到手了，重新把弹窗的 HTML 填满
+                details.innerHTML = `
+                    <img src="${deepData.header_image || game.large_capsule_image}" class="modal-header-img" alt="${deepData.name}">
+                    <h2 style="margin-top:0;">${deepData.name}</h2>
+                    <p><strong>Price:</strong> <span style="color:#A3CF06; font-size:18px;">${priceText}</span></p>
+                    
+                    <div style="margin: 15px 0; max-height: 100px; overflow-y: auto; background: #16202d; padding: 10px; border-radius: 4px; font-size: 14px; line-height: 1.5;">
+                        <strong>About This Game:</strong><br>
+                        ${deepData.short_description}
+                    </div>
+
+                    <div style="margin: 15px 0; max-height: 120px; overflow-y: auto; background: #16202d; padding: 10px; border-radius: 4px; font-size: 12px; color: #8f98a0;">
+                        ${pcReq}
+                    </div>
+
+                    <a href="https://store.steampowered.com/app/${game.id}" target="_blank" class="btn" style="text-decoration: none; display: inline-block; margin-top: 5px;">View on Steam Store</a>
+                `;
+
+            } catch (error) {
+                // 4. 万一某个游戏在 Steam 里查不到数据，优雅地报错
+                details.innerHTML = `
+                    <h3 style="color: #ff4c4c; text-align: center;">Failed to load deep details.</h3>
+                    <p style="text-align: center;">${error.message}</p>
+                `;
+            }
         }
 
         // Close Modal

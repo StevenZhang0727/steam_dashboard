@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #1b2838; color: white; padding: 20px; }
+        .game-card { border: 1px solid #316282; padding: 15px; margin: 10px 0; background: #16202d; border-radius: 5px; }
+        .price { color: #A3CF06; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>🎮 Steam Hot Games Detector</h1>
+    <button onclick="loadGames()">Get Steam Specials / Featured Data</button>
+    
+    <div id="games-container"></div>
+
+            <script>
+                async function loadGames() {
+                    const container = document.getElementById('games-container');
+                    container.innerHTML = "Requesting data from Steam...";
+
+                    try {
+                        // Fetch data from our own backend API
+                        const response = await fetch('/api/steam-games');
+                        const data = await response.json();
+
+                        // Get the array of games under the 'specials' category
+                        const specials = data.specials.items;
+                        
+                        container.innerHTML = ""; // Clear the loading text
+
+                        // Loop through the games and inject them into the webpage
+                        specials.forEach(game => {
+                            const card = document.createElement('div');
+                            card.className = 'game-card';
+                            card.innerHTML = `
+                                <h3>${game.name}</h3>
+                                <img src="${game.large_capsule_image}" alt="${game.name}" style="width:200px;">
+                                <p class="price">Discounted Price: $${(game.final_price / 100).toFixed(2)}</p>
+                            `;
+                            container.appendChild(card);
+                        });
+
+                    } catch (error) {
+                        container.innerHTML = "Failed to load data. Please check the backend console logs!";
+                        console.error(error);
+                    }
+                }
+            </script>
+</body>
+</html>

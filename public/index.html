@@ -15,6 +15,7 @@
             --primary-color: #66c0f4;
             --border-color: #316282;
             --price-free: #A3CF06;
+            --btn-steam: #4c6b22; /* Steam 经典的绿色按钮 */
         }
 
         /* 亮色模式变量 */
@@ -27,6 +28,7 @@
             --primary-color: #1b2838;
             --border-color: #d1d9e0;
             --price-free: #4c6b22;
+            --btn-steam: #5c8028;
         }
 
         body {
@@ -50,18 +52,15 @@
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s, transform 0.1s;
         }
         .btn:hover { opacity: 0.8; }
+        .btn:active { transform: scale(0.98); }
         .btn-icon { background: none; font-size: 24px; padding: 5px; color: var(--text-title); }
         .btn-icon:hover { color: var(--primary-color); }
 
         .controls-container {
-            background-color: var(--panel-bg);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
+            background-color: var(--panel-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);
         }
         
         .search-bar {
@@ -74,14 +73,11 @@
         .filter-title { font-weight: bold; color: var(--primary-color); margin-right: 15px; }
         .filter-label { margin-right: 15px; cursor: pointer; }
 
-        .grid-container {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
-        }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 
         .game-card {
             background-color: var(--card-bg); border-radius: 6px; overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
-            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; border: 1px solid var(--border-color);
         }
         .game-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.2); border-color: var(--primary-color); }
         .game-image { width: 100%; height: auto; display: block; object-fit: cover; }
@@ -97,22 +93,18 @@
 
         .pagination { display: flex; justify-content: center; align-items: center; margin-top: 30px; gap: 15px; }
 
-        /* 模态框通用样式 (用于游戏详情和设置面板) */
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6); align-items: center; justify-content: center;
-            backdrop-filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.6); align-items: center; justify-content: center; backdrop-filter: blur(5px);
         }
         .modal-content {
             background-color: var(--panel-bg); padding: 25px; border-radius: 8px; width: 90%; max-width: 600px;
-            position: relative; border: 1px solid var(--border-color); color: var(--text-color);
-            animation: fadeIn 0.2s ease;
+            position: relative; border: 1px solid var(--border-color); color: var(--text-color); animation: fadeIn 0.2s ease;
         }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         
         .close-btn { position: absolute; top: 10px; right: 15px; color: var(--text-color); font-size: 28px; cursor: pointer; }
         
-        /* 设置面板专属样式 */
         .settings-group { margin-bottom: 20px; }
         .settings-group label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary-color); }
         .settings-group select { width: 100%; padding: 10px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; }
@@ -122,7 +114,6 @@
 
     <div class="header-container">
         <h1 id="ui-title">🎮 Steam Pro Dashboard</h1>
-        <!-- ⚙️ 设置按钮 -->
         <button class="btn btn-icon" onclick="openSettings()">⚙️</button>
     </div>
 
@@ -213,6 +204,7 @@
 
     <script>
         // === 1. 国际化翻译字典 (i18n) ===
+        // 新增了 viewSteam 的翻译
         const i18n = {
             en_US: {
                 title: "🎮 Steam Pro Dashboard", searchPlace: "Search games by name...",
@@ -222,7 +214,8 @@
                 setTitle: "Preferences", setLang: "Language", setRegion: "Region & Currency",
                 setTheme: "Theme", setData: "Data Saver (Low-Res Images)", btnSave: "Save & Reload",
                 loading: "Loading top games from Steam...", fetchDeep: "Fetching deeply hidden secrets...",
-                about: "About This Game:", freeToPlay: "Free to Play", steamLang: "english"
+                about: "About This Game:", freeToPlay: "Free to Play", steamLang: "english",
+                viewSteam: "View on Steam Store ↗"
             },
             zh_CN: {
                 title: "🎮 Steam 高级仪表盘", searchPlace: "输入游戏名称搜索...",
@@ -232,7 +225,8 @@
                 setTitle: "偏好设置", setLang: "界面语言", setRegion: "商店区域与货币",
                 setTheme: "外观主题", setData: "省流量模式 (加载低画质图片)", btnSave: "保存并重新加载数据",
                 loading: "正在从 Steam 获取热门游戏...", fetchDeep: "正在挖掘游戏的深层秘密...",
-                about: "关于此游戏:", freeToPlay: "免费开玩", steamLang: "schinese"
+                about: "关于此游戏:", freeToPlay: "免费开玩", steamLang: "schinese",
+                viewSteam: "在 Steam 查看详情 ↗"
             },
             ja_JP: {
                 title: "🎮 Steam プロダッシュボード", searchPlace: "ゲーム名で検索...",
@@ -242,39 +236,28 @@
                 setTitle: "設定", setLang: "言語", setRegion: "地域と通貨",
                 setTheme: "テーマ", setData: "データセーバー (低解像度画像)", btnSave: "保存してリロード",
                 loading: "Steamから人気ゲームを読み込み中...", fetchDeep: "ゲームの詳細情報を取得中...",
-                about: "このゲームについて:", freeToPlay: "プレイ無料", steamLang: "japanese"
+                about: "このゲームについて:", freeToPlay: "プレイ無料", steamLang: "japanese",
+                viewSteam: "Steamストアで見る ↗"
             }
         };
 
-        // === 2. 状态与配置 ===
         let allGames = [];
         let filteredGames = [];
         let currentPage = 1;
         const itemsPerPage = 8;
-        
-        // 默认设置 (如果用户没存过)
         let config = { lang: 'en_US', region: 'US', theme: 'dark', dataSaver: 'false' };
-
-        // 模拟数据
         const playerTypes = ["Single-player", "Multiplayer"];
         const genres = ["FPS", "Horror", "Action"];
 
-        // === 3. 初始化 (加载设置与多语言) ===
         function initApp() {
-            // 从浏览器的 LocalStorage 中读取用户之前保存的设置
             const savedConfig = localStorage.getItem('steamDashboardConfig');
             if (savedConfig) config = JSON.parse(savedConfig);
-
             applyThemeAndLang();
             fetchGames();
         }
 
-        // 应用主题并替换全站文字
         function applyThemeAndLang() {
-            // 1. 设置主题
             document.documentElement.setAttribute('data-theme', config.theme);
-            
-            // 2. 替换文字字典
             const t = i18n[config.lang];
             document.getElementById('ui-title').innerText = t.title;
             document.getElementById('searchInput').placeholder = t.searchPlace;
@@ -288,8 +271,6 @@
             document.getElementById('ui-filter-genre').innerText = t.filterGenre;
             document.getElementById('prevBtn').innerText = t.btnPrev;
             document.getElementById('nextBtn').innerText = t.btnNext;
-            
-            // 设置弹窗里的文字
             document.getElementById('ui-settings-title').innerText = t.setTitle;
             document.getElementById('ui-set-lang').innerText = t.setLang;
             document.getElementById('ui-set-region').innerText = t.setRegion;
@@ -298,34 +279,25 @@
             document.getElementById('ui-btn-save').innerText = t.btnSave;
         }
 
-        // === 4. 核心逻辑 ===
         async function fetchGames() {
             const container = document.getElementById('games-container');
             container.innerHTML = `<h3 style="text-align:center; grid-column:1/-1;">${i18n[config.lang].loading}</h3>`;
-            
             try {
-                // ！！！亮点：前端带着用户的区域和语言配置去请求后端！！！
                 const steamLang = i18n[config.lang].steamLang;
                 const url = `/api/steam-games?cc=${config.region}&lang=${steamLang}`;
-                
                 const response = await fetch(url);
                 const rawGames = await response.json(); 
-                
                 allGames = rawGames.map(game => ({
-                    ...game,
-                    is_free: game.final_price === 0,
+                    ...game, is_free: game.final_price === 0,
                     players: [playerTypes[Math.floor(Math.random() * playerTypes.length)]], 
                     tags: [genres[Math.floor(Math.random() * genres.length)]] 
                 }));
-
                 applyFilters();
             } catch (error) {
                 container.innerHTML = "Failed to load data. API Error.";
-                console.error(error);
             }
         }
 
-        // (过滤和分页逻辑不变)
         function applyFilters() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const priceFilter = document.querySelector('input[name="price"]:checked').value;
@@ -362,8 +334,6 @@
                 const priceText = game.is_free ? i18n[config.lang].freeToPlay : `${game.currency === 'CNY' ? '¥' : (game.currency==='JPY'?'¥':'$')}${(game.final_price / 100).toFixed(2)}`;
                 const discountTag = game.discount_percent > 0 ? `<span class="tag-badge" style="background:#4c6b22;">-${game.discount_percent}%</span>` : '';
                 const tagsHTML = [...game.players, ...game.tags].map(tag => `<span class="tag-badge">${tag}</span>`).join('');
-                
-                // 省流量模式判断：如果开启，加载小的 capsule 图片，否则加载高清大图
                 const imgSource = config.dataSaver === 'true' ? game.small_capsule_image : game.large_capsule_image;
 
                 card.innerHTML = `
@@ -387,7 +357,6 @@
             document.getElementById('nextBtn').disabled = (currentPage === totalPages);
         }
 
-        // === 5. 游戏详情弹窗 ===
         async function openGameModal(game) {
             const modal = document.getElementById('gameModal');
             const details = document.getElementById('modal-details');
@@ -404,25 +373,31 @@
                 const priceText = game.is_free ? t.freeToPlay : `${game.currency === 'CNY' ? '¥' : '$'}${(game.final_price / 100).toFixed(2)}`;
                 const pcReq = deepData.pc_requirements?.minimum || "No PC requirements listed.";
                 
+                // 【核心修改】加入了 Steam 官方跳转大按钮
                 details.innerHTML = `
                     <img src="${deepData.header_image || game.large_capsule_image}" class="modal-header-img">
                     <h2 style="margin-top:0;">${deepData.name}</h2>
                     <p><span style="color:var(--price-free); font-size:18px; font-weight:bold;">${priceText}</span></p>
+                    
                     <div style="margin: 15px 0; max-height: 100px; overflow-y: auto; background: var(--card-bg); padding: 10px; border-radius: 4px; font-size: 14px;">
                         <strong>${t.about}</strong><br>${deepData.short_description}
                     </div>
-                    <div style="margin: 15px 0; max-height: 120px; overflow-y: auto; background: var(--card-bg); padding: 10px; border-radius: 4px; font-size: 12px;">
+                    <div style="margin: 15px 0; max-height: 100px; overflow-y: auto; background: var(--card-bg); padding: 10px; border-radius: 4px; font-size: 12px;">
                         ${pcReq}
                     </div>
+                    
+                    <a href="https://store.steampowered.com/app/${game.id}" target="_blank" 
+                       class="btn" 
+                       style="display: block; text-align: center; margin-top: 20px; padding: 12px; font-size: 16px; text-decoration: none; background-color: var(--btn-steam);">
+                        ${t.viewSteam}
+                    </a>
                 `;
             } catch (error) {
                 details.innerHTML = `<h3 style="color: #ff4c4c; text-align: center;">Failed to load details.</h3>`;
             }
         }
 
-        // === 6. 设置面板控制 ===
         function openSettings() {
-            // 打开弹窗前，把当前的 config 填到表单里
             document.getElementById('setting-lang').value = config.lang;
             document.getElementById('setting-region').value = config.region;
             document.getElementById('setting-theme').value = config.theme;
@@ -431,19 +406,15 @@
         }
 
         function saveSettings() {
-            // 获取用户的选择
             config.lang = document.getElementById('setting-lang').value;
             config.region = document.getElementById('setting-region').value;
             config.theme = document.getElementById('setting-theme').value;
             config.dataSaver = document.getElementById('setting-data').value;
             
-            // ！！！存入浏览器本地存储！！！
             localStorage.setItem('steamDashboardConfig', JSON.stringify(config));
-            
-            // 关闭弹窗并重新渲染整个网页
             document.getElementById('settingsModal').style.display = 'none';
-            applyThemeAndLang(); // 立即变色并改文字
-            fetchGames(); // 重新向 Steam 要对应国家的货币数据
+            applyThemeAndLang(); 
+            fetchGames(); 
         }
 
         function closeModal(event, modalId, force = false) {

@@ -153,22 +153,14 @@
         async function fetchGames() {
             try {
                 const response = await fetch('/api/steam-games');
-                const data = await response.json();
+                const rawGames = await response.json(); 
                 
-                // We combine 'top_sellers' and 'specials' to get more data for testing
-                let rawGames = [...data.top_sellers.items, ...data.specials.items];
-                
-                // Remove duplicates by ID
-                const uniqueGamesMap = new Map();
-                rawGames.forEach(game => uniqueGamesMap.set(game.id, game));
-                allGames = Array.from(uniqueGamesMap.values());
-
-                // Inject mock tags since the basic API doesn't provide them
-                allGames = allGames.map(game => ({
+                // Inject mock tags (since the basic API doesn't provide them)
+                allGames = rawGames.map(game => ({
                     ...game,
                     is_free: game.final_price === 0,
-                    players: [playerTypes[Math.floor(Math.random() * playerTypes.length)]], // Randomly assign 1 player type
-                    tags: [genres[Math.floor(Math.random() * genres.length)]] // Randomly assign 1 genre
+                    players: [playerTypes[Math.floor(Math.random() * playerTypes.length)]], 
+                    tags: [genres[Math.floor(Math.random() * genres.length)]] 
                 }));
 
                 // Initial render
